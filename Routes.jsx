@@ -58,14 +58,14 @@ export const router = createBrowserRouter([
             {
                 path: "meals/:id",
                 element: <PrivateRoute><MealDetails></MealDetails></PrivateRoute>,
-                loader: ({ params }) => fetch(`http://localhost:5000/meals/${params.id}`)
+                loader: ({ params }) => fetch(`https://server-vert-rho.vercel.app/meals/${params.id}`)
             },
             { path: "login", element: <Login></Login> },
             { path: "register", element: <Register></Register> },
             {
                 path: "order/:id",
                 element: <PrivateRoute><Order></Order></PrivateRoute>,
-                loader: ({ params }) => fetch(`http://localhost:5000/meals/${params.id}`)
+                loader: ({ params }) => fetch(`https://server-vert-rho.vercel.app/meals/${params.id}`)
             },
         ],
     },
@@ -95,7 +95,7 @@ export const router = createBrowserRouter([
                 path: 'payment/:id',
                 element: <Payment></Payment>,
                 // Fetch the specific order so we know how much to charge
-                loader: ({ params }) => fetch(`http://localhost:5000/orders/${params.id}`)
+                loader: ({ params }) => fetch(`https://server-vert-rho.vercel.app/orders/${params.id}`)
             },
             // Inside Dashboard Children
             {

@@ -57,7 +57,7 @@ const Order = () => {
             confirmButtonText: 'Yes, Order!'
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post('http://localhost:5000/orders', orderData)
+                axios.post('https://server-vert-rho.vercel.app/orders', orderData)
                     .then(res => {
                         if (res.data.insertedId || res.data.modifiedCount > 0) {
                             Swal.fire(

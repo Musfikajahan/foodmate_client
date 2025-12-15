@@ -14,7 +14,7 @@ const useChef = () => {
         enabled: !loading && !!user?.email,
         queryFn: async () => {
             const res = await axios.get(
-                `http://localhost:5000/users/chef/${user.email}`
+                `https://server-vert-rho.vercel.app/users/chef/${user.email}`
             );
             // FIXED: Backend returns { isChef: true/false }, not { chef: ... }
             return res.data.isChef;

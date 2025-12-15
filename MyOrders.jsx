@@ -12,7 +12,7 @@ const MyOrders = () => {
         queryKey: ['myOrders', user?.email],
         enabled: !!user?.email, // Only run query if user email exists
         queryFn: async () => {
-            const res = await axios.get(`http://localhost:5000/orders?email=${user.email}`);
+            const res = await axios.get(`https://server-vert-rho.vercel.app/orders?email=${user.email}`);
             return res.data;
         }
     });
@@ -27,7 +27,7 @@ const MyOrders = () => {
             confirmButtonText: "Yes, cancel it!"
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.delete(`http://localhost:5000/orders/${id}`)
+                axios.delete(`https://server-vert-rho.vercel.app/orders/${id}`)
                     .then(res => {
                         if (res.data.deletedCount > 0) {
                             refetch();

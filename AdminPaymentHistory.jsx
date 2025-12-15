@@ -6,7 +6,7 @@ const AdminPaymentHistory = () => {
     const { data: payments = [], isLoading } = useQuery({
         queryKey: ['allPayments'],
         queryFn: async () => {
-            const res = await axios.get('http://localhost:5000/payments');
+            const res = await axios.get('https://server-vert-rho.vercel.app/payments');
             return res.data;
         }
     });

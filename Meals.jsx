@@ -11,7 +11,7 @@ const Meals = () => {
 
     useEffect(() => {
         setLoading(true);
-        axios.get("http://localhost:5000/meals")
+        axios.get("https://server-vert-rho.vercel.app/meals")
             .then(res => {
                 setMeals(res.data);
                 setLoading(false);

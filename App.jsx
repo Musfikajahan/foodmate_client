@@ -1,16 +1,19 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import MyProfile from "./pages/MyProfile";
+import EditProfile from "./pages/EditProfile";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <h2 className='font-bold'>Hutappa</h2>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="my-profile" element={<MyProfile />} />
+          <Route path="edit-profile" element={<EditProfile />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
