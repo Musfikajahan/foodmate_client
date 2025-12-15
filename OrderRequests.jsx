@@ -3,27 +3,25 @@ import { useQuery } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { AuthContext } from '../providers/AuthProvider';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const OrderRequests = () => {
     const { user } = useContext(AuthContext);
 
-    // 1. Fetch orders specific to this chef
     const { data: orders = [], refetch } = useQuery({
         queryKey: ['order-requests', user?.email],
         queryFn: async () => {
-            // Since we are using standard axios for now, we use the full URL
             const res = await axios.get(`http://localhost:5000/orders/chef/${user?.email}`);
             return res.data;
         },
-        enabled: !!user?.email // Only run query if user email is available
+        enabled: !!user?.email
     });
 
-    // 2. Handle Status Updates
     const handleStatusChange = (orderId, newStatus) => {
         axios.patch(`http://localhost:5000/orders/status/${orderId}`, { status: newStatus })
             .then(res => {
                 if (res.data.modifiedCount > 0) {
-                    refetch(); // Live update the list
+                    refetch();
                     Swal.fire({
                         icon: 'success',
                         title: `Order ${newStatus}`,
@@ -43,13 +41,13 @@ const OrderRequests = () => {
     };
 
     return (
-        <div className="p-8">
-            <h2 className="text-3xl font-bold mb-6 text-chef-primary">Manage Order Requests</h2>
-            <div className="overflow-x-auto shadow-md sm:rounded-lg">
-                <table className="table w-full">
-                    {/* head */}
-                    <thead className="bg-gray-200 text-gray-700 uppercase text-sm">
-                        <tr>
+        <div className="p-8 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 min-h-screen">
+            <h2 className="text-3xl font-extrabold mb-6 text-chef-primary">Manage Order Requests</h2>
+
+            <div className="overflow-x-auto shadow-lg rounded-xl">
+                <table className="table w-full border-separate border-spacing-y-2">
+                    <thead>
+                        <tr className="bg-gradient-to-r from-chef-primary to-orange-400 text-white uppercase text-sm">
                             <th>Meal Name</th>
                             <th>Qty</th>
                             <th>Price</th>
@@ -59,65 +57,65 @@ const OrderRequests = () => {
                         </tr>
                     </thead>
                     <tbody>
+                        <AnimatePresence>
                         {orders.length === 0 ? (
-                             <tr>
+                            <tr>
                                 <td colSpan="6" className="text-center py-4 text-gray-500">No orders found.</td>
                             </tr>
                         ) : (
                             orders.map(order => (
-                                <tr key={order._id} className="hover:bg-gray-50">
-                                    <td>
-                                        <div className="font-bold">{order.mealName}</div>
-                                    </td>
+                                <motion.tr
+                                    key={order._id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="bg-white shadow-md rounded-xl hover:scale-[1.02] hover:shadow-xl transition-all duration-300"
+                                >
+                                    <td className="font-semibold text-gray-800">{order.mealName}</td>
                                     <td>{order.quantity}</td>
-                                    <td>${order.totalPrice}</td>
+                                    <td className="text-chef-primary font-bold">${order.totalPrice}</td>
                                     <td>
-                                        <span className={`badge ${
-                                            order.orderStatus === 'pending' ? 'badge-warning' :
-                                            order.orderStatus === 'accepted' ? 'badge-info' : // Changed 'cooking' to 'accepted' to match your button logic
-                                            order.orderStatus === 'delivered' ? 'badge-success' :
-                                            'badge-error'
-                                        } text-white p-3 capitalize`}>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${
+                                            order.orderStatus === 'pending' ? 'bg-yellow-400 text-black' :
+                                            order.orderStatus === 'accepted' ? 'bg-blue-400 text-white' :
+                                            order.orderStatus === 'delivered' ? 'bg-green-500 text-white' :
+                                            'bg-red-500 text-white'
+                                        }`}>
                                             {order.orderStatus}
                                         </span>
                                     </td>
-                                    <td>
-                                        {order.userEmail}
-                                        <br/>
-                                        <span className="text-xs opacity-50">{order.userAddress}</span>
+                                    <td className="text-gray-600 text-sm">
+                                        {order.userEmail}<br/>
+                                        <span className="opacity-50">{order.userAddress}</span>
                                     </td>
                                     <td className="flex gap-2">
-                                        {/* CANCEL BUTTON */}
                                         <button 
                                             onClick={() => handleStatusChange(order._id, 'cancelled')}
                                             disabled={order.orderStatus !== 'pending'} 
-                                            className="btn btn-xs btn-error text-white"
+                                            className="btn btn-xs rounded-full bg-red-500 hover:bg-red-600 text-white transition-all duration-300"
                                         >
                                             Cancel
                                         </button>
-
-                                        {/* ACCEPT BUTTON (Starts Cooking) */}
                                         <button 
                                             onClick={() => handleStatusChange(order._id, 'accepted')}
                                             disabled={order.orderStatus !== 'pending'} 
-                                            className="btn btn-xs btn-success text-white"
+                                            className="btn btn-xs rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300"
                                         >
                                             Accept
                                         </button>
-
-                                        {/* DELIVER BUTTON */}
                                         <button 
                                             onClick={() => handleStatusChange(order._id, 'delivered')}
-                                            // Only enabled if accepted (cooking)
                                             disabled={order.orderStatus !== 'accepted'} 
-                                            className="btn btn-xs btn-primary"
+                                            className="btn btn-xs rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-300"
                                         >
                                             Deliver
                                         </button>
                                     </td>
-                                </tr>
+                                </motion.tr>
                             ))
                         )}
+                        </AnimatePresence>
                     </tbody>
                 </table>
             </div>

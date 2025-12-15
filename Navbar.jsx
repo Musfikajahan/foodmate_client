@@ -1,70 +1,139 @@
 import { Link, NavLink } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../providers/AuthProvider";
-import useChef from "../hooks/useChef"; // 1. Import the hook
+import useChef from "../hooks/useChef";
 
 const Navbar = () => {
     const { user, logOut } = useContext(AuthContext);
-    const [isChef] = useChef(); // 2. Get Chef status
+    const [isChef] = useChef();
 
     const handleLogOut = () => {
-        logOut()
-            .then(() => { })
-            .catch(error => console.log(error));
-    }
+        logOut().catch(error => console.log(error));
+    };
 
-    const navOptions = <>
-        <li><NavLink to="/">Home</NavLink></li>
-        <li><NavLink to="/meals">Meals</NavLink></li>
-        
-        {/* Only show Dashboard options if logged in */}
-        {user && (
-            <>
-                <li><NavLink to="/dashboard">Dashboard</NavLink></li>
-                
-                {/* 3. LOGIC: Show Payment History only if user is NOT a Chef */}
-                {/* This means Admins and Regular Users WILL see it, but Chefs won't. */}
-                {!isChef && (
-                    <li><NavLink to="/dashboard/payment-history">Payment History</NavLink></li>
-                )}
-            </>
-        )}
-    </>
+    const navOptions = (
+        <>
+            <li>
+                <NavLink
+                    to="/"
+                    className={({ isActive }) =>
+                        `transition-colors duration-300 px-3 py-2 rounded-lg ${isActive ? "bg-orange-500 text-white" : "text-orange-700 hover:bg-yellow-100 hover:text-orange-600"}`
+                    }
+                >
+                    Home
+                </NavLink>
+            </li>
+            <li>
+                <NavLink
+                    to="/meals"
+                    className={({ isActive }) =>
+                        `transition-colors duration-300 px-3 py-2 rounded-lg ${isActive ? "bg-orange-500 text-white" : "text-orange-700 hover:bg-yellow-100 hover:text-orange-600"}`
+                    }
+                >
+                    Meals
+                </NavLink>
+            </li>
+            {user && (
+                <>
+                    <li>
+                        <NavLink
+                            to="/dashboard"
+                            className={({ isActive }) =>
+                                `transition-colors duration-300 px-3 py-2 rounded-lg ${isActive ? "bg-orange-500 text-white" : "text-orange-700 hover:bg-yellow-100 hover:text-orange-600"}`
+                            }
+                        >
+                            Dashboard
+                        </NavLink>
+                    </li>
+                    {!isChef && (
+                        <li>
+                            <NavLink
+                                to="/dashboard/payment-history"
+                                className={({ isActive }) =>
+                                    `transition-colors duration-300 px-3 py-2 rounded-lg ${isActive ? "bg-orange-500 text-white" : "text-orange-700 hover:bg-yellow-100 hover:text-orange-600"}`
+                                }
+                            >
+                                Payment History
+                            </NavLink>
+                        </li>
+                    )}
+                </>
+            )}
+        </>
+    );
 
     return (
-        <div className="navbar bg-base-100 shadow-md fixed z-10 bg-opacity-30 w-full px-6 text-black">
+        <div className="navbar fixed z-20 w-full bg-gradient-to-r from-yellow-100 via-orange-100 to-orange-200 backdrop-blur-md shadow-lg px-6 transition-all duration-500">
             <div className="navbar-start">
                 <div className="dropdown">
-                    <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+                    <div tabIndex={0} className="btn btn-ghost lg:hidden">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-orange-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
+                        </svg>
                     </div>
-                    <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <ul
+                        tabIndex={0}
+                        className="menu menu-sm dropdown-content mt-3 p-3 shadow-lg bg-orange-50 rounded-xl w-52 space-y-2"
+                    >
                         {navOptions}
                     </ul>
                 </div>
-                <Link to="/" className="btn btn-ghost text-2xl font-bold text-chef-primary">
-                    🥘 FoodChef
+                <Link
+                    to="/"
+                    className="flex items-center gap-2 text-3xl font-extrabold text-orange-600 animate-bounce"
+                >
+                    <span className="text-4xl">🥘</span> FoodMate
                 </Link>
             </div>
             <div className="navbar-center hidden lg:flex">
-                <ul className="menu menu-horizontal px-1">
-                    {navOptions}
-                </ul>
+                <ul className="menu menu-horizontal px-1 gap-2">{navOptions}</ul>
             </div>
-            <div className="navbar-end">
+            <div className="navbar-end flex items-center gap-3">
                 {user ? (
                     <>
-                        <div className="avatar mr-3">
-                            <div className="w-10 rounded-full ring ring-chef-primary ring-offset-base-100 ring-offset-2">
-                                <img src={user?.photoURL} alt="User" />
+                        <div className="avatar">
+                            <div className="w-12 h-12 rounded-full ring ring-orange-400 ring-offset-base-100 ring-offset-2 overflow-hidden hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-orange-50">
+                                {user?.photoURL ? (
+                                    <img
+                                        src={user.photoURL.trim()}
+                                        alt="User"
+                                        className="w-full h-full object-cover block"
+                                    />
+                                ) : (
+                                    <span className="text-orange-500 text-xl font-bold">
+                                        {user?.displayName ? user.displayName[0].toUpperCase() : "U"}
+                                    </span>
+                                )}
                             </div>
                         </div>
-                        <button onClick={handleLogOut} className="btn btn-sm btn-error text-white">Logout</button>
+
+                        <button
+                            onClick={handleLogOut}
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-400 to-red-400 text-white font-semibold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300"
+                        >
+                            Logout
+                        </button>
                     </>
                 ) : (
                     <>
-                        <Link to="/login" className="btn btn-sm btn-outline border-chef-primary text-chef-primary mr-2">Login</Link>
-                        <Link to="/register" className="btn btn-sm bg-chef-primary text-white hover:bg-orange-600">Register</Link>
+                        <Link
+                            to="/login"
+                            className="px-4 py-2 rounded-lg border-2 border-orange-500 text-orange-600 font-medium hover:bg-orange-500 hover:text-white transition-colors duration-300"
+                        >
+                            Login
+                        </Link>
+                        <Link
+                            to="/register"
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-yellow-400 text-white font-semibold hover:scale-105 hover:shadow-lg transition-all duration-300"
+                        >
+                            Register
+                        </Link>
                     </>
                 )}
             </div>

@@ -1,8 +1,10 @@
 import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../providers/AuthProvider";
 
 const MyProfile = () => {
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate(); // For routing to Edit Profile
 
     return (
         <div className="flex flex-col items-center justify-center pt-10">
@@ -31,6 +33,14 @@ const MyProfile = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Edit Profile Button */}
+                    <button
+                        className="mt-6 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                        onClick={() => navigate("/dashboard/edit-profile")}
+                    >
+                        Edit Profile
+                    </button>
                 </div>
             </div>
         </div>

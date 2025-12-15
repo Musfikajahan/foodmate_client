@@ -5,38 +5,44 @@ import axios from "axios";
 import { useContext } from "react";
 import { AuthContext } from "../providers/AuthProvider";
 
-// ⚠️ IMPORTANT: Replace this with your REAL key from https://api.imgbb.com/
-// If you don't have one, the code below has a fallback to a dummy image.
+// !!! WARNING: REPLACE THIS WITH YOUR REAL KEY FROM https://api.imgbb.com/ !!!
+// If you use this fake key, you will get a 400 Bad Request Error.
 const image_hosting_key = "e1234567890abcdef1234567890abcdef"; 
 const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
 
 const AddMeal = () => {
     const { register, handleSubmit, reset } = useForm();
     const { user } = useContext(AuthContext);
-    const axiosPublic = useAxiosPublic(); // Use the hook we just created
+    const axiosPublic = useAxiosPublic();
 
     const onSubmit = async (data) => {
-        // 1. Prepare Image Upload using FormData (Required for files)
+        // 1. Upload Image to ImgBB
         const formData = new FormData();
         formData.append('image', data.image[0]);
 
         try {
             let imageUrl = "";
 
-            // 2. Try to Upload Image
             try {
                 const res = await axios.post(image_hosting_api, formData, {
                     headers: { 'content-type': 'multipart/form-data' }
                 });
-                imageUrl = res.data.data.display_url;
+                if(res.data.success) {
+                    imageUrl = res.data.data.display_url;
+                }
             } catch (err) {
-                console.error("ImgBB Upload Failed (Likely invalid Key). Using dummy image.");
-                // Fallback image so you can still test the functionality
+                console.error("ImgBB Upload Failed. Check your API KEY.", err);
+                // If upload fails, use a fallback so the form still works
                 imageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c";
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Image Upload Failed',
+                    text: 'Using a default image because the API Key is invalid.',
+                });
             }
 
+            // 2. Send Data to Database
             if (imageUrl) {
-                // 3. Prepare Meal Data
                 const menuItem = {
                     title: data.name,
                     category: data.category,
@@ -44,7 +50,7 @@ const AddMeal = () => {
                     description: data.recipe,
                     image: imageUrl,
                     chefName: user?.displayName,
-                    chefEmail: user?.email, // <--- CRITICAL: This links the meal to YOU
+                    chefEmail: user?.email,
                     ingredients: [data.ingredient1, data.ingredient2, data.ingredient3].filter(Boolean), 
                     rating: 0,
                     likes: 0,
@@ -52,7 +58,7 @@ const AddMeal = () => {
                     postDate: new Date()
                 }
 
-                // 4. Save to Database
+                // This now works because we fixed index.js
                 const menuRes = await axiosPublic.post('/meals', menuItem);
 
                 if (menuRes.data.insertedId) {
@@ -61,7 +67,7 @@ const AddMeal = () => {
                         position: 'top-end',
                         icon: 'success',
                         title: `${data.name} added!`,
-                        text: "Now log in as a User and order this item to test.",
+                        text: "Your meal is now live.",
                         showConfirmButton: false,
                         timer: 2500
                     });
@@ -78,21 +84,33 @@ const AddMeal = () => {
     };
 
     return (
-        <div className="w-full p-4">
-             <h2 className="text-3xl font-semibold text-center mb-8 text-chef-primary">Add a New Meal</h2>
-            <div className="bg-base-200 p-8 rounded-xl shadow-lg">
-                <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="w-full p-6 md:p-12 bg-gradient-to-r from-orange-100 via-white to-pink-100 min-h-screen animate-fadeIn">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500 animate-gradient-x">
+                Add New Meal
+            </h2>
+            <div className="max-w-3xl mx-auto bg-white bg-opacity-90 p-8 md:p-12 rounded-3xl shadow-2xl hover:shadow-3xl transition-shadow duration-500">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    
                     {/* Recipe Name */}
-                    <div className="form-control w-full my-6">
-                        <label className="label"><span className="label-text">Recipe Name*</span></label>
-                        <input type="text" placeholder="Recipe Name" {...register('name', { required: true })} className="input input-bordered w-full" />
+                    <div className="form-control w-full">
+                        <label className="label"><span className="label-text font-semibold text-lg">Recipe Name*</span></label>
+                        <input 
+                            type="text" 
+                            placeholder="Recipe Name" 
+                            {...register('name', { required: true })} 
+                            className="input input-bordered w-full focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition duration-300 hover:scale-105"
+                        />
                     </div>
 
                     {/* Category & Price */}
-                    <div className="flex gap-6">
+                    <div className="flex flex-col md:flex-row gap-6">
                         <div className="form-control w-full">
-                            <label className="label"><span className="label-text">Category*</span></label>
-                            <select defaultValue="default" {...register('category', { required: true })} className="select select-bordered w-full">
+                            <label className="label"><span className="label-text font-semibold text-lg">Category*</span></label>
+                            <select 
+                                defaultValue="default" 
+                                {...register('category', { required: true })} 
+                                className="select select-bordered w-full focus:ring-2 focus:ring-pink-400 transition duration-300 hover:scale-105"
+                            >
                                 <option disabled value="default">Select a category</option>
                                 <option value="Breakfast">Breakfast</option>
                                 <option value="Lunch">Lunch</option>
@@ -102,34 +120,50 @@ const AddMeal = () => {
                         </div>
 
                         <div className="form-control w-full">
-                            <label className="label"><span className="label-text">Price*</span></label>
-                            <input type="number" placeholder="Price" {...register('price', { required: true })} className="input input-bordered w-full" />
+                            <label className="label"><span className="label-text font-semibold text-lg">Price*</span></label>
+                            <input 
+                                type="number" 
+                                placeholder="Price" 
+                                {...register('price', { required: true })} 
+                                className="input input-bordered w-full focus:ring-2 focus:ring-orange-300 transition duration-300 hover:scale-105"
+                            />
                         </div>
                     </div>
 
                     {/* Ingredients */}
-                    <div className="form-control w-full my-4">
-                        <label className="label"><span className="label-text">Key Ingredients</span></label>
-                        <div className="flex gap-2">
-                            <input type="text" placeholder="Ingredient 1" {...register('ingredient1')} className="input input-bordered w-1/3" />
-                            <input type="text" placeholder="Ingredient 2" {...register('ingredient2')} className="input input-bordered w-1/3" />
-                            <input type="text" placeholder="Ingredient 3" {...register('ingredient3')} className="input input-bordered w-1/3" />
+                    <div className="form-control w-full">
+                        <label className="label"><span className="label-text font-semibold text-lg">Key Ingredients</span></label>
+                        <div className="flex gap-2 flex-wrap">
+                            <input type="text" placeholder="Ingredient 1" {...register('ingredient1')} className="input input-bordered w-1/3 min-w-[120px] hover:scale-105 transition-transform duration-300" />
+                            <input type="text" placeholder="Ingredient 2" {...register('ingredient2')} className="input input-bordered w-1/3 min-w-[120px] hover:scale-105 transition-transform duration-300" />
+                            <input type="text" placeholder="Ingredient 3" {...register('ingredient3')} className="input input-bordered w-1/3 min-w-[120px] hover:scale-105 transition-transform duration-300" />
                         </div>
                     </div>
 
-                    {/* Description */}
-                    <div className="form-control">
-                        <label className="label"><span className="label-text">Recipe Details</span></label>
-                        <textarea {...register('recipe')} className="textarea textarea-bordered h-24" placeholder="Description..."></textarea>
+                    {/* Recipe Details */}
+                    <div className="form-control w-full">
+                        <label className="label"><span className="label-text font-semibold text-lg">Recipe Details</span></label>
+                        <textarea 
+                            {...register('recipe')} 
+                            placeholder="Description..." 
+                            className="textarea textarea-bordered h-28 focus:ring-2 focus:ring-pink-300 transition duration-300 hover:scale-105"
+                        ></textarea>
                     </div>
 
-                    {/* Image File */}
-                    <div className="form-control w-full my-6">
-                        <label className="label"><span className="label-text">Meal Image*</span></label>
-                        <input {...register('image', { required: true })} type="file" className="file-input file-input-bordered w-full max-w-xs" />
+                    {/* Meal Image */}
+                    <div className="form-control w-full">
+                        <label className="label"><span className="label-text font-semibold text-lg">Meal Image*</span></label>
+                        <input 
+                            {...register('image', { required: true })} 
+                            type="file" 
+                            className="file-input file-input-bordered w-full max-w-xs hover:scale-105 transition-transform duration-300"
+                        />
                     </div>
 
-                    <button className="btn bg-chef-primary text-white w-full">Add Item</button>
+                    {/* Submit Button */}
+                    <button className="btn w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold hover:scale-105 hover:shadow-lg transition-transform duration-300">
+                        Add Item
+                    </button>
                 </form>
             </div>
         </div>

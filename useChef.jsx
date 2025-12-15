@@ -16,7 +16,8 @@ const useChef = () => {
             const res = await axios.get(
                 `http://localhost:5000/users/chef/${user.email}`
             );
-            return res.data.chef;
+            // FIXED: Backend returns { isChef: true/false }, not { chef: ... }
+            return res.data.isChef;
         }
     });
 

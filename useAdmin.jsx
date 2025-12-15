@@ -7,20 +7,18 @@ const useAdmin = () => {
     const { user, loading } = useContext(AuthContext);
 
     const {
-        data: isAdmin = false,
+        data: isAdminData,
         isLoading: isAdminLoading
     } = useQuery({
         queryKey: ["isAdmin", user?.email],
         enabled: !loading && !!user?.email,
         queryFn: async () => {
-            const res = await axios.get(
-                `http://localhost:5000/users/admin/${user.email}`
-            );
-            return res.data.admin;
+            const res = await axios.get(`http://localhost:5000/users/admin/${user.email}`);
+            return res.data.isAdmin; // Correct field name
         }
     });
 
-    return [isAdmin, isAdminLoading];
+    return [isAdminData, isAdminLoading];
 };
 
 export default useAdmin;

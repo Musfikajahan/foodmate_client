@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../providers/AuthProvider';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
@@ -10,6 +10,7 @@ const MyOrders = () => {
 
     const { data: orders = [], refetch } = useQuery({
         queryKey: ['myOrders', user?.email],
+        enabled: !!user?.email, // Only run query if user email exists
         queryFn: async () => {
             const res = await axios.get(`http://localhost:5000/orders?email=${user.email}`);
             return res.data;
@@ -50,7 +51,7 @@ const MyOrders = () => {
                             <th>Total Price</th>
                             <th>Date</th>
                             <th>Status</th>
-                            <th>Pay</th> {/* New Payment Column */}
+                            <th>Pay</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -58,10 +59,14 @@ const MyOrders = () => {
                         {orders.map((item, index) => (
                             <tr key={item._id}>
                                 <th>{index + 1}</th>
-                                <td className="font-bold">{item.mealName}</td>
-                                <td>{item.quantity}</td>
-                                <td>${item.totalPrice}</td>
-                                <td>{new Date(item.orderTime).toLocaleDateString()}</td>
+                                {/* Added fallback: if mealName is missing, try name */}
+                                <td className="font-bold">
+                                    {item.mealName || item.name || "Unknown Item"}
+                                </td>
+                                <td>{item.quantity || 1}</td>
+                                {/* Added fallback: if totalPrice is missing, try price */}
+                                <td>${item.totalPrice || item.price || 0}</td>
+                                <td>{item.orderTime ? new Date(item.orderTime).toLocaleDateString() : 'N/A'}</td>
                                 
                                 {/* Order Status Badge */}
                                 <td>
@@ -69,21 +74,21 @@ const MyOrders = () => {
                                         item.orderStatus === 'pending' ? 'badge-warning' : 
                                         item.orderStatus === 'accepted' ? 'badge-info' :
                                         item.orderStatus === 'delivered' ? 'badge-success' :
+                                        item.orderStatus === 'paid' ? 'badge-success' :
                                         'badge-ghost'
                                     } text-white capitalize`}>
                                         {item.orderStatus || 'pending'}
                                     </span>
                                 </td>
 
-                                {/* --- PAYMENT COLUMN --- */}
+                                {/* Payment Button */}
                                 <td>
-                                    {item.paymentStatus === 'paid' ? (
+                                    {item.orderStatus === 'paid' || item.paymentStatus === 'paid' ? (
                                         <span className="text-green-500 font-bold">Paid</span>
                                     ) : (
                                         <Link to={`/dashboard/payment/${item._id}`}>
                                             <button 
                                                 className="btn btn-sm btn-primary"
-                                                // Disable button unless Chef has accepted the order
                                                 disabled={item.orderStatus !== 'accepted'}
                                                 title={item.orderStatus !== 'accepted' ? "Wait for Chef to accept" : "Pay Now"}
                                             >
@@ -93,12 +98,11 @@ const MyOrders = () => {
                                     )}
                                 </td>
 
-                                {/* Cancel Action */}
+                                {/* Cancel Button */}
                                 <td>
                                     <button 
                                         onClick={() => handleDelete(item._id)} 
                                         className="btn btn-sm btn-error text-white"
-                                        // Disable cancel if chef has already started cooking (accepted)
                                         disabled={item.orderStatus !== 'pending'}
                                     >
                                         Cancel
