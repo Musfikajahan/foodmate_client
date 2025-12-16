@@ -108,7 +108,7 @@ const Dashboard = () => {
     );
 };
 
-// Reusable Animated Sidebar Link Component
+
 const DashboardLink = ({ to, icon, label }) => (
     <NavLink 
         to={to} 

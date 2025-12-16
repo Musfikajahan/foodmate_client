@@ -5,8 +5,7 @@ import axios from "axios";
 import { useContext } from "react";
 import { AuthContext } from "../providers/AuthProvider";
 
-// !!! WARNING: REPLACE THIS WITH YOUR REAL KEY FROM https://api.imgbb.com/ !!!
-// If you use this fake key, you will get a 400 Bad Request Error.
+
 const image_hosting_key = "e1234567890abcdef1234567890abcdef"; 
 const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
 
@@ -32,7 +31,6 @@ const AddMeal = () => {
                 }
             } catch (err) {
                 console.error("ImgBB Upload Failed. Check your API KEY.", err);
-                // If upload fails, use a fallback so the form still works
                 imageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c";
                 Swal.fire({
                     icon: 'warning',
