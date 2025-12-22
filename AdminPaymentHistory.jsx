@@ -6,7 +6,7 @@ const AdminPaymentHistory = () => {
     const { data: payments = [], isLoading } = useQuery({
         queryKey: ['allPayments'],
         queryFn: async () => {
-            const res = await axios.get('https://server-vert-rho.vercel.app/payments');
+            const res = await axios.get('https://foodmate-server-v2.vercel.app/payments');
             return res.data;
         }
     });

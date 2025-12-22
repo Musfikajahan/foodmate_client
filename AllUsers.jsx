@@ -8,7 +8,7 @@ const AllUsers = () => {
 
     // Fetch users
     const refetch = () => {
-        axios.get('https://server-vert-rho.vercel.app/users')
+        axios.get('https://foodmate-server-v2.vercel.app/users')
             .then(res => setUsers(res.data))
             .catch(err => console.error(err));
     }
@@ -18,7 +18,7 @@ const AllUsers = () => {
     }, []);
 
     const handleMakeAdmin = (user) => {
-        axios.patch(`https://server-vert-rho.vercel.app/users/admin/${user._id}`, { role: 'admin' })
+        axios.patch(`https://foodmate-server-v2.vercel.app/users/admin/${user._id}`, { role: 'admin' })
             .then(res => {
                 if(res.data.modifiedCount > 0){
                     refetch();
@@ -28,7 +28,7 @@ const AllUsers = () => {
     }
 
     const handleMakeChef = (user) => {
-        axios.patch(`https://server-vert-rho.vercel.app/users/admin/${user._id}`, { role: 'chef' })
+        axios.patch(`https://foodmate-server-v2.vercel.app/users/admin/${user._id}`, { role: 'chef' })
             .then(res => {
                 if(res.data.modifiedCount > 0){
                     refetch();

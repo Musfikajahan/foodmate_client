@@ -60,7 +60,7 @@ const Order = () => {
             confirmButtonText: 'Yes, Place Order!'
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post('https://server-vert-rho.vercel.app/orders', orderData)
+                axios.post('https://foodmate-server-v2.vercel.app/orders', orderData)
                     .then(res => {
                         console.log("✅ Server Response:", res.data);
 

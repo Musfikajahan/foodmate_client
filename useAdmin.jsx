@@ -13,7 +13,7 @@ const useAdmin = () => {
         queryKey: ["isAdmin", user?.email],
         enabled: !loading && !!user?.email,
         queryFn: async () => {
-            const res = await axios.get(`https://server-vert-rho.vercel.app/users/admin/${user.email}`);
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/users/admin/${user.email}`);
             return res.data.isAdmin; // Correct field name
         }
     });

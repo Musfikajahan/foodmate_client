@@ -11,7 +11,7 @@ const MyMeals = () => {
 
     const fetchMeals = () => {
         if(user?.email){
-            axios.get(`https://server-vert-rho.vercel.app/meals/chef/${user.email}`)
+            axios.get(`https://foodmate-server-v2.vercel.app/meals/chef/${user.email}`)
             .then(res => setMeals(res.data));
         }
     }
@@ -31,7 +31,7 @@ const MyMeals = () => {
             confirmButtonText: "Yes, delete it!"
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.delete(`https://server-vert-rho.vercel.app/meals/${id}`)
+                axios.delete(`https://foodmate-server-v2.vercel.app/meals/${id}`)
                     .then(res => {
                         if (res.data.deletedCount > 0) {
                             fetchMeals();

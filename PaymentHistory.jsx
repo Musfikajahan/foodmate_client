@@ -9,7 +9,7 @@ const PaymentHistory = () => {
     const { data: payments = [] } = useQuery({
         queryKey: ['payments', user?.email],
         queryFn: async () => {
-            const res = await axios.get(`https://server-vert-rho.vercel.app/payments/${user.email}`);
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/payments/${user.email}`);
             return res.data;
         }
     });

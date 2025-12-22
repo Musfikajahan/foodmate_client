@@ -14,7 +14,7 @@ const useChef = () => {
         enabled: !loading && !!user?.email,
         queryFn: async () => {
             const res = await axios.get(
-                `https://server-vert-rho.vercel.app/users/chef/${user.email}`
+                `https://foodmate-server-v2.vercel.app/users/chef/${user.email}`
             );
             // FIXED: Backend returns { isChef: true/false }, not { chef: ... }
             return res.data.isChef;

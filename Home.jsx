@@ -9,7 +9,7 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('https://server-vert-rho.vercel.app/meals')
+        axios.get('https://foodmate-server-v2.vercel.app/meals')
             .then(res => {
                 setMeals(res.data);
                 setLoading(false);

@@ -11,14 +11,14 @@ const OrderRequests = () => {
     const { data: orders = [], refetch } = useQuery({
         queryKey: ['order-requests', user?.email],
         queryFn: async () => {
-            const res = await axios.get(`https://server-vert-rho.vercel.app/orders/chef/${user?.email}`);
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/orders/chef/${user?.email}`);
             return res.data;
         },
         enabled: !!user?.email
     });
 
     const handleStatusChange = (orderId, newStatus) => {
-        axios.patch(`https://server-vert-rho.vercel.app/orders/status/${orderId}`, { status: newStatus })
+        axios.patch(`https://foodmate-server-v2.vercel.app/orders/status/${orderId}`, { status: newStatus })
             .then(res => {
                 if (res.data.modifiedCount > 0) {
                     refetch();
