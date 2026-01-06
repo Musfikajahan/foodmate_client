@@ -14,7 +14,7 @@ const OrderRequests = () => {
         queryFn: async () => {
             const token = localStorage.getItem('access-token'); // Get Token
             // Fixed URL (no enter key) and added Headers
-            const res = await axios.get(`http://localhost:5000/orders/chef/${user?.email}`, {
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/orders/chef/${user?.email}`, {
                 headers: { authorization: `Bearer ${token}` }
             });
             return res.data;
@@ -24,7 +24,7 @@ const OrderRequests = () => {
     const handleStatusChange = (orderId, newStatus) => {
         const token = localStorage.getItem('access-token'); // Get Token
         
-        axios.patch(`http://localhost:5000/orders/status/${orderId}`, 
+        axios.patch(`https://foodmate-server-v2.vercel.app/orders/status/${orderId}`, 
             { status: newStatus },
             { headers: { authorization: `Bearer ${token}` } } // Add Headers
         )

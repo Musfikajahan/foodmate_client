@@ -23,7 +23,7 @@ import ManageRequests from "../pages/ManageRequests";
 import MyProfile from "../pages/MyProfile";
 import EditProfile from "../pages/EditProfile";
 import MyReviews from "../pages/MyReviews";
-import ManageItems from "../pages/Dashboard/ManageItems/ManageItems"; // ✅ Import ManageItems
+import ManageItems from "../pages/Dashboard/ManageItems/ManageItems";
 
 export const router = createBrowserRouter([
     {
@@ -35,8 +35,7 @@ export const router = createBrowserRouter([
             { 
                 path: "meals/:id", 
                 element: <PrivateRoute><MealDetails></MealDetails></PrivateRoute>,
-                // ✅ Fixed URL (removed newline)
-                loader: ({params}) => fetch(`http://localhost:5000/meals/${params.id}`)
+                loader: ({params}) => fetch(`https://foodmate-server-v2.vercel.app/meals/${params.id}`)
             },
             { path: "order", element: <Order></Order> },
             { path: "login", element: <Login></Login> },
@@ -47,7 +46,6 @@ export const router = createBrowserRouter([
         path: "dashboard",
         element: <PrivateRoute><Dashboard></Dashboard></PrivateRoute>,
         children: [
-            // ✅ Force everyone to land on My Profile first
             { index: true, element: <Navigate to="/dashboard/my-profile" replace /> },
 
             // User Routes
@@ -60,8 +58,6 @@ export const router = createBrowserRouter([
             { path: "manage-requests", element: <ManageRequests></ManageRequests> },
             { path: "admin-home", element: <AdminHome></AdminHome> },
             { path: "admin-payment-history", element: <AdminPaymentHistory></AdminPaymentHistory> },
-            
-            // ✅ MISSING ROUTE ADDED HERE:
             { path: "manage-items", element: <ManageItems></ManageItems> },
 
             // Chef Routes
@@ -69,23 +65,22 @@ export const router = createBrowserRouter([
             { path: "chef-home", element: <MyMeals></MyMeals> },
             { path: 'order-requests', element: <OrderRequests></OrderRequests> },
             {
+                // ✅ Update Meal Route with Loader
                 path: 'update-meal/:id',
                 element: <AddMeal></AddMeal>, 
-                // ✅ Fixed URL
-                loader: ({params}) => fetch(`http://localhost:5000/meals/${params.id}`)
+                // ✅ Fetch single meal data for editing
+                loader: ({params}) => fetch(`https://foodmate-server-v2.vercel.app/meals/${params.id}`)
             },
             
             // Shared/Misc
             {
                 path: 'payment/:id',
                 element: <Payment></Payment>,
-                // ✅ Fixed URL
-                loader: ({ params }) => fetch(`http://localhost:5000/orders/${params.id}`)
+                loader: ({ params }) => fetch(`https://foodmate-server-v2.vercel.app/orders/${params.id}`)
             },
             { path: 'payment-history', element: <PaymentHistory></PaymentHistory> },
             { path: 'payment-success', element: <PaymentSuccess></PaymentSuccess> },
             { path: 'edit-profile', element: <EditProfile></EditProfile> },
-            
         ]
     }
 ]);

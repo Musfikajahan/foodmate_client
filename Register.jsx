@@ -17,7 +17,7 @@ const Register = () => {
                 updateUserProfile(data.name, data.photoURL)
                     .then(() => {
                         const userInfo = { name: data.name, email: data.email, role: 'user', image: data.photoURL };
-                        axios.post('http://localhost:5000/users', userInfo)
+                        axios.post('https://foodmate-server-v2.vercel.app/users', userInfo)
                             .then(res => {
                                 if (res.data.insertedId) {
                                     reset();

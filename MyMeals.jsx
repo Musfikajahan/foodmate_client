@@ -1,17 +1,17 @@
 import { useContext } from "react";
 import { AuthContext } from "../providers/AuthProvider";
-import { useQuery } from "@tanstack/react-query"; // Using TanStack Query is better here
+import { useQuery } from "@tanstack/react-query"; 
 import Swal from "sweetalert2";
 import { FaTrash, FaEdit } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import useAxiosSecure from "../hooks/useAxiosSecure"; // Use secure hook
+import useAxiosSecure from "../hooks/useAxiosSecure"; 
 
 const MyMeals = () => {
     const { user } = useContext(AuthContext);
     const axiosSecure = useAxiosSecure();
 
-    // Use useQuery instead of useEffect for better data handling
+    // Fetch meals specific to this Chef
     const { data: meals = [], refetch } = useQuery({
         queryKey: ['my-meals', user?.email],
         enabled: !!user?.email,
@@ -35,7 +35,7 @@ const MyMeals = () => {
                 axiosSecure.delete(`/meals/${id}`)
                     .then(res => {
                         if (res.data.deletedCount > 0) {
-                            refetch(); // Automatically refresh the list
+                            refetch(); 
                             Swal.fire("Deleted!", "Your meal has been deleted.", "success");
                         }
                     })
@@ -70,16 +70,14 @@ const MyMeals = () => {
                             >
                                 <th>{index + 1}</th>
                                 <td>
-                                    <div className="flex items-center gap-3">
-                                        <div className="avatar">
-                                            <div className="mask mask-squircle w-12 h-12">
-                                                <img src={item.image} alt={item.title} />
-                                            </div>
+                                    <div className="avatar">
+                                        <div className="mask mask-squircle w-12 h-12">
+                                            <img src={item.image} alt={item.title} />
                                         </div>
                                     </div>
                                 </td>
                                 <td className="font-semibold text-gray-800">{item.title}</td>
-                                <td className="text-chef-primary font-bold">${item.price}</td>
+                                <td className="text-orange-600 font-bold">${item.price}</td>
                                 <td className="text-yellow-500 font-semibold">{item.likes || 0}</td>
                                 <td className="flex justify-center gap-3">
                                     <Link to={`/dashboard/update-meal/${item._id}`}>

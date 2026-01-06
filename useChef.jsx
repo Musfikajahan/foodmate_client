@@ -15,7 +15,7 @@ const useChef = () => {
         queryFn: async () => {
             const token = localStorage.getItem('access-token'); // 1. Get Token
             const res = await axios.get(
-                `http://localhost:5000/users/chef/${user.email}`, 
+                `https://foodmate-server-v2.vercel.app/users/chef/${user.email}`, 
                 {
                     headers: {
                         authorization: `Bearer ${token}` // 2. Send Token

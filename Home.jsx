@@ -11,8 +11,8 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // ✅ FIX: Use http://localhost:5000 to get local data
-        axios.get('http://localhost:5000/meals')
+        // ✅ FIX: Use https://foodmate-server-v2.vercel.app to get local data
+        axios.get('https://foodmate-server-v2.vercel.app/meals')
             .then(res => {
                 setMeals(res.data);
                 setLoading(false);

@@ -8,7 +8,7 @@ const AdminPaymentHistory = () => {
         queryFn: async () => {
             const token = localStorage.getItem('access-token'); // Get Token
             // Fixed URL and added headers
-            const res = await axios.get('http://localhost:5000/payments', {
+            const res = await axios.get('https://foodmate-server-v2.vercel.app/payments', {
                 headers: { authorization: `Bearer ${token}` }
             });
             return res.data;

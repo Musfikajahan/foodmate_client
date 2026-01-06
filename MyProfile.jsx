@@ -12,14 +12,14 @@ const MyProfile = () => {
         queryKey: ['userProfile', user?.email],
         enabled: !!user?.email,
         queryFn: async () => {
-            const res = await axios.get(`http://localhost:5000
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app
 /users/profile/${user.email}`);
             return res.data;
         }
     });
 
     const handleRoleRequest = (role) => {
-        axios.post('http://localhost:5000/users/request-role', { 
+        axios.post('https://foodmate-server-v2.vercel.app/users/request-role', { 
             email: user.email, 
             requestedRole: role 
         })

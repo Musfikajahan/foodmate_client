@@ -19,7 +19,7 @@ const MealDetails = () => {
     const { data: reviews = [], refetch } = useQuery({
         queryKey: ['reviews', _id],
         queryFn: async () => {
-            const res = await axios.get(`http://localhost:5000/reviews`);
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/reviews`);
             return res.data.filter(r => r.mealId === _id);
         }
     });

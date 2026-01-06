@@ -18,7 +18,7 @@ const Meals = () => {
         queryKey: ['meals', currentPage, search], // Refetch when Page or Search changes
         queryFn: async () => {
             // This URL tells the server: "Search the WHOLE DB for 'dal', give me page 0"
-            const res = await axios.get(`http://localhost:5000/meals?page=${currentPage}&limit=${itemsPerPage}&search=${search}`);
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/meals?page=${currentPage}&limit=${itemsPerPage}&search=${search}`);
             return res.data;
         }
     });
@@ -27,7 +27,7 @@ const Meals = () => {
     const { data: countData = { count: 0 } } = useQuery({
         queryKey: ['mealsCount', search],
         queryFn: async () => {
-            const res = await axios.get(`http://localhost:5000/mealsCount?search=${search}`);
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/mealsCount?search=${search}`);
             return res.data;
         }
     });

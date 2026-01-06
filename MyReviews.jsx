@@ -13,7 +13,7 @@ const MyReviews = () => {
         queryKey: ['my-reviews', user?.email],
         enabled: !!user?.email,
         queryFn: async () => {
-            const res = await axios.get(`http://localhost:5000/reviews?email=${user.email}`);
+            const res = await axios.get(`https://foodmate-server-v2.vercel.app/reviews?email=${user.email}`);
             return res.data;
         }
     });

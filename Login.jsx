@@ -15,7 +15,7 @@ const Login = () => {
 
     const handleLoginSuccess = (user) => {
         // 1. Attempt to generate JWT Token
-        axios.post('http://localhost:5000/jwt', { email: user.email })
+        axios.post('https://foodmate-server-v2.vercel.app/jwt', { email: user.email })
             .then(data => {
                 localStorage.setItem('access-token', data.data.token);
                 // Success: Navigate
@@ -59,7 +59,7 @@ const Login = () => {
                     role: 'user',
                     status: 'active'
                 }
-                axios.post('http://localhost:5000/users', userInfo)
+                axios.post('https://foodmate-server-v2.vercel.app/users', userInfo)
                     .then(() => {
                          handleLoginSuccess(result.user);
                     })

@@ -8,7 +8,7 @@ const CustomerReviews = () => {
     
     useEffect(() => {
         // 1. Try to fetch Real Reviews from your Backend
-        axios.get('http://localhost:5000/reviews')
+        axios.get('https://foodmate-server-v2.vercel.app/reviews')
             .then(res => {
                 if (res.data.length > 0) {
                     setReviews(res.data);

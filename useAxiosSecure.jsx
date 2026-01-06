@@ -4,7 +4,7 @@ import { useContext, useEffect } from "react"; // Added useEffect
 import { AuthContext } from "../providers/AuthProvider";
 
 const axiosSecure = axios.create({
-    baseURL: 'http://localhost:5000' 
+    baseURL: 'https://foodmate-server-v2.vercel.app' 
 });
 
 const useAxiosSecure = () => {
