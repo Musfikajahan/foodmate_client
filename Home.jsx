@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Banner from "../components/Banner";
 import MealCard from "../components/MealCard";
+import CustomerReviews from "../components/CustomerReviews"; 
+import WhyChooseUs from "../components/WhyChooseUs"; 
 import axios from "axios";
 import { motion } from "framer-motion";
 
@@ -9,7 +11,8 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('https://foodmate-server-v2.vercel.app/meals')
+        // ✅ FIX: Use http://localhost:5000 to get local data
+        axios.get('http://localhost:5000/meals')
             .then(res => {
                 setMeals(res.data);
                 setLoading(false);
@@ -22,40 +25,28 @@ const Home = () => {
 
     return (
         <div className="overflow-hidden">
-            {/* Banner */}
-            <motion.div 
-                initial={{ opacity: 0, y: -20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ duration: 1 }}
-            >
-                <Banner />
-            </motion.div>
+            <Banner />
 
-            {/* Section */}
             <div className="my-20 px-4 max-w-screen-xl mx-auto">
                 <div className="text-center mb-12">
                     <motion.h2 
-                        className="text-4xl font-extrabold text-amber-400 mb-2 relative inline-block"
+                        className="text-4xl font-extrabold text-amber-500 mb-2 relative inline-block"
                         initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        whileInView={{ opacity: 1, x: 0 }} 
                         transition={{ duration: 0.8 }}
+                        viewport={{ once: true }}
                     >
                         Top Meals Today
                         <motion.div 
                             className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 rounded-full"
                             initial={{ scaleX: 0 }}
-                            animate={{ scaleX: 1 }}
+                            whileInView={{ scaleX: 1 }}
                             transition={{ duration: 1, ease: "easeInOut" }}
                         />
                     </motion.h2>
-                    <motion.p 
-                        className="text-pink-400 mt-2"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.8 }}
-                    >
+                    <p className="text-pink-500 mt-2 font-medium">
                         Check out the most popular dishes from our talented chefs
-                    </motion.p>
+                    </p>
                 </div>
 
                 {loading ? (
@@ -66,9 +57,11 @@ const Home = () => {
                     <motion.div 
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                        whileInView={{ opacity: 1 }}
                         transition={{ duration: 1 }}
+                        viewport={{ once: true }}
                     >
+                        {/* Show first 6 meals */}
                         {meals.slice(0, 6).map(meal => (
                             <motion.div 
                                 key={meal._id}
@@ -82,6 +75,9 @@ const Home = () => {
                     </motion.div>
                 )}
             </div>
+
+            <WhyChooseUs />
+            <CustomerReviews />
         </div>
     );
 };

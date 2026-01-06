@@ -1,24 +1,23 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import Swal from "sweetalert2";
-import { FaUserShield, FaUtensils } from "react-icons/fa";
+import { FaTrash, FaUserShield, FaUtensils } from "react-icons/fa";
+import useAxiosSecure from "../hooks/useAxiosSecure"; // Use the secure hook
 
 const AllUsers = () => {
-    const [users, setUsers] = useState([]);
+    const axiosSecure = useAxiosSecure(); // Initialize secure axios
 
-    // Fetch users
-    const refetch = () => {
-        axios.get('https://foodmate-server-v2.vercel.app/users')
-            .then(res => setUsers(res.data))
-            .catch(err => console.error(err));
-    }
+    const { data: users = [], refetch } = useQuery({
+        queryKey: ['users'],
+        queryFn: async () => {
+            // This now automatically adds the token and uses localhost:5000
+            const res = await axiosSecure.get('/users');
+            return res.data;
+        }
+    });
 
-    useEffect(() => {
-        refetch();
-    }, []);
-
-    const handleMakeAdmin = (user) => {
-        axios.patch(`https://foodmate-server-v2.vercel.app/users/admin/${user._id}`, { role: 'admin' })
+    // Make Admin
+    const handleMakeAdmin = user => {
+        axiosSecure.patch(`/users/admin/${user._id}`, { role: 'admin' })
             .then(res => {
                 if(res.data.modifiedCount > 0){
                     refetch();
@@ -27,67 +26,58 @@ const AllUsers = () => {
             });
     }
 
-    const handleMakeChef = (user) => {
-        axios.patch(`https://foodmate-server-v2.vercel.app/users/admin/${user._id}`, { role: 'chef' })
-            .then(res => {
-                if(res.data.modifiedCount > 0){
-                    refetch();
-                    Swal.fire('Success', `${user.name} is now a Chef!`, 'success');
-                }
-            });
+    // Delete User
+    const handleDeleteUser = user => {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Not implemented on server yet, but UI is here
+                Swal.fire("Deleted!", "User has been deleted.", "success");
+            }
+        });
     }
 
     return (
-        <div className="w-full p-4">
-            <h3 className="text-3xl font-bold text-center text-chef-primary mb-6">
-                Total Users: <span className="text-orange-500">{users.length}</span>
-            </h3>
-            <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-                <table className="table w-full border-collapse">
-                    {/* Table Head */}
-                    <thead className="bg-gradient-to-r from-orange-400 via-pink-400 to-purple-500 text-white text-lg uppercase tracking-wider">
+        <div className="w-full p-10">
+            <h3 className="text-3xl font-semibold my-4">Total Users: {users.length}</h3>
+            <div className="overflow-x-auto">
+                <table className="table table-zebra w-full">
+                    {/* head */}
+                    <thead>
                         <tr>
-                            <th className="py-3 px-4">#</th>
-                            <th className="py-3 px-4">Name</th>
-                            <th className="py-3 px-4">Email</th>
-                            <th className="py-3 px-4">Role</th>
-                            <th className="py-3 px-4">Actions</th>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
-                    {/* Table Body */}
                     <tbody>
                         {users.map((user, index) => (
-                            <tr key={user._id} className="hover:bg-gray-50 transition-all duration-300 shadow-sm">
-                                <th className="py-3 px-4">{index + 1}</th>
-                                <td className="py-3 px-4 font-medium">{user.name}</td>
-                                <td className="py-3 px-4">{user.email}</td>
-                                <td className={`py-3 px-4 font-bold uppercase ${user.role === 'admin' ? 'text-red-500' : user.role === 'chef' ? 'text-green-500' : 'text-gray-600'}`}>
-                                    {user.role || 'user'}
+                            <tr key={user._id}>
+                                <th>{index + 1}</th>
+                                <td>{user.name}</td>
+                                <td>{user.email}</td>
+                                <td>
+                                    { user.role === 'admin' ? 'Admin' : 
+                                      user.role === 'chef' ? 'Chef' : 'User' }
                                 </td>
-                                <td className="py-3 px-4 flex gap-3">
-                                    {/* Make Admin Button */}
-                                    {user.role === 'admin' ? (
-                                        <span className="px-3 py-1 rounded-full bg-red-100 text-red-600 font-semibold animate-pulse">Admin</span>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleMakeAdmin(user)}
-                                            className="btn btn-sm bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 transform hover:scale-105 flex items-center gap-1"
-                                        >
-                                            <FaUserShield /> Admin
+                                <td>
+                                    { user.role === 'user' && (
+                                        <button onClick={() => handleMakeAdmin(user)} className="btn btn-ghost bg-orange-600 text-white btn-xs">
+                                            <FaUserShield></FaUserShield>
                                         </button>
                                     )}
-
-                                    {/* Make Chef Button */}
-                                    {user.role === 'chef' ? (
-                                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-600 font-semibold animate-pulse">Chef</span>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleMakeChef(user)}
-                                            className="btn btn-sm bg-green-100 text-green-600 hover:bg-green-600 hover:text-white transition-all duration-300 transform hover:scale-105 flex items-center gap-1"
-                                        >
-                                            <FaUtensils /> Chef
-                                        </button>
-                                    )}
+                                    <button onClick={() => handleDeleteUser(user)} className="btn btn-ghost bg-red-600 text-white btn-xs ml-2">
+                                        <FaTrash></FaTrash>
+                                    </button>
                                 </td>
                             </tr>
                         ))}

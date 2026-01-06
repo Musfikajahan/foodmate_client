@@ -1,44 +1,64 @@
-import React from "react";
+import { useParams } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import { useLoaderData } from "react-router-dom";
 import CheckoutForm from "./CheckoutForm";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import { useQuery } from "@tanstack/react-query";
 
-const stripePromise = loadStripe(import.meta.env.VITE_PAYMENT_GATEWAY_PK);
+// 🔴 TODO: PASTE YOUR PUBLISHABLE KEY HERE (It starts with pk_test_)
+// Do NOT use the sk_test_ key here!
+const stripePromise = loadStripe("pk_test_51SmMkNEOduL5skydPUBSvXMhzB3ZdYaaDG10OzN0YkBiGFMmUfEIdlZCsaDaKvpEDX7vA39uCNx6gpK5QBLRpC9B00xMq75UOF"); 
 
 const Payment = () => {
-  const order = useLoaderData();
+    const { id } = useParams();
+    const axiosSecure = useAxiosSecure();
 
-  if (!order) return <p>Loading...</p>;
+    // Fetch the order using the ID
+    const { data: order, isLoading } = useQuery({
+        queryKey: ['order-payment', id],
+        queryFn: async () => {
+            const res = await axiosSecure.get(`/orders/${id}`);
+            return res.data;
+        }
+    });
 
-  let message = "";
-  const isPayable = order.orderStatus === "delivered";
+    if (isLoading) {
+        return (
+            <div className="text-center mt-20">
+                <span className="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+        );
+    }
 
-  if (order.orderStatus === "pending") {
-    message = "Your order is not accepted by the chef yet.";
-  } else if (order.orderStatus === "accepted") {
-    message = "Your order is accepted but not delivered yet.";
-  } else if (order.orderStatus === "cancelled") {
-    message = "This order was cancelled by the chef. Payment is not allowed.";
-  } else if (order.orderStatus === "paid") {
-    message = "This order is already paid.";
-  }
+    // Safety check if order is invalid
+    if (!order || !order.price) {
+        return (
+            <div className="text-center mt-20 text-red-500 font-bold">
+                Error: Order not found or Access Denied.<br/>
+                Please Logout and Login again.
+            </div>
+        );
+    }
 
-  return (
-    <div className="p-10 w-full">
-      <h2 className="text-3xl text-center mb-10 font-bold text-chef-primary">
-        Payment for <span className="text-black">{order.mealName}</span>
-      </h2>
-
-      {!isPayable ? (
-        <p className="text-red-500 font-bold text-center text-lg">{message}</p>
-      ) : (
-        <Elements stripe={stripePromise}>
-          <CheckoutForm order={order} />
-        </Elements>
-      )}
-    </div>
-  );
+    return (
+        <div className="w-full p-10">
+            <h2 className="text-3xl font-bold text-center mb-10 text-purple-600">Payment</h2>
+            <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+                <div className="mb-6">
+                    <h3 className="font-bold text-lg">Order Summary</h3>
+                    <p className="text-gray-600">Item: <span className="font-semibold">{order.mealName}</span></p>
+                    <p className="text-gray-600">Quantity: {order.quantity}</p>
+                    <div className="divider my-2"></div>
+                    <p className="text-xl font-bold text-orange-500">Total to Pay: ${order.price}</p>
+                </div>
+                
+                {/* Options ensure text contrast is high */}
+                <Elements stripe={stripePromise} options={{ appearance: { theme: 'stripe' } }}>
+                    <CheckoutForm order={order} />
+                </Elements>
+            </div>
+        </div>
+    );
 };
 
 export default Payment;

@@ -13,40 +13,17 @@ import UserProfile from "../pages/UserProfile";
 import AdminHome from "../pages/AdminHome";
 import AddMeal from "../pages/AddMeal";
 import MyMeals from "../pages/MyMeals";
-import OrderRequests from "../pages/OrderRequests"; // Correct Import
+import OrderRequests from "../pages/OrderRequests";
 import PrivateRoute from "./PrivateRoute";
-import Payment from "../pages/Payment/Payment"; // Import at top
-import PaymentHistory from "../pages/PaymentHistory"; // <--- ADD THIS IMPORT
-import PaymentSuccess from "../pages/PaymentSuccess"; // <--- ADD THIS IMPORT
+import Payment from "../pages/Payment/Payment";
+import PaymentHistory from "../pages/PaymentHistory";
+import PaymentSuccess from "../pages/PaymentSuccess";
 import AdminPaymentHistory from "../pages/AdminPaymentHistory";
-
-// --- IMPORT YOUR HOOKS ---
-import useAdmin from "../hooks/useAdmin";
-import useChef from "../hooks/useChef";
-
-// --- SMART COMPONENT WITH DEBUGGING ---
-const DashboardHome = () => {
-    const [isAdmin, isAdminLoading] = useAdmin();
-    const [isChef, isChefLoading] = useChef();
-
-    console.log("Checking Roles...");
-    console.log("Is Admin?", isAdmin);
-    console.log("Is Chef?", isChef);
-
-    if (isAdminLoading || isChefLoading) {
-        return <div className="flex justify-center mt-10"><span className="loading loading-spinner loading-lg"></span></div>;
-    }
-
-    if (isAdmin) {
-        return <Navigate to="/dashboard/admin-home" replace />;
-    }
-
-    if (isChef) {
-        return <Navigate to="/dashboard/chef-home" replace />;
-    }
-
-    return <Navigate to="/dashboard/my-profile" replace />;
-};
+import ManageRequests from "../pages/ManageRequests";
+import MyProfile from "../pages/MyProfile";
+import EditProfile from "../pages/EditProfile";
+import MyReviews from "../pages/MyReviews";
+import ManageItems from "../pages/Dashboard/ManageItems/ManageItems"; // ✅ Import ManageItems
 
 export const router = createBrowserRouter([
     {
@@ -55,63 +32,60 @@ export const router = createBrowserRouter([
         children: [
             { path: "/", element: <Home></Home> },
             { path: "meals", element: <Meals></Meals> },
-            {
-                path: "meals/:id",
+            { 
+                path: "meals/:id", 
                 element: <PrivateRoute><MealDetails></MealDetails></PrivateRoute>,
-                loader: ({ params }) => fetch(`https://foodmate-server-v2.vercel.app/meals/${params.id}`)
+                // ✅ Fixed URL (removed newline)
+                loader: ({params}) => fetch(`http://localhost:5000/meals/${params.id}`)
             },
+            { path: "order", element: <Order></Order> },
             { path: "login", element: <Login></Login> },
-            { path: "register", element: <Register></Register> },
-            {
-                path: "order/:id",
-                element: <PrivateRoute><Order></Order></PrivateRoute>,
-                loader: ({ params }) => fetch(`https://foodmate-server-v2.vercel.app/meals/${params.id}`)
-            },
-        ],
+            { path: "register", element: <Register></Register> }
+        ]
     },
-
-    // --- DASHBOARD ROUTES ---
     {
         path: "dashboard",
         element: <PrivateRoute><Dashboard></Dashboard></PrivateRoute>,
         children: [
-            {
-                index: true,
-                element: <DashboardHome></DashboardHome>
-            },
+            // ✅ Force everyone to land on My Profile first
+            { index: true, element: <Navigate to="/dashboard/my-profile" replace /> },
+
+            // User Routes
             { path: "my-orders", element: <MyOrders></MyOrders> },
+            { path: "my-profile", element: <MyProfile></MyProfile> },
+            { path: "my-reviews", element: <MyReviews></MyReviews> }, 
+            
+            // Admin Routes
             { path: "all-users", element: <AllUsers></AllUsers> },
-            { path: "my-profile", element: <UserProfile></UserProfile> },
+            { path: "manage-requests", element: <ManageRequests></ManageRequests> },
             { path: "admin-home", element: <AdminHome></AdminHome> },
+            { path: "admin-payment-history", element: <AdminPaymentHistory></AdminPaymentHistory> },
+            
+            // ✅ MISSING ROUTE ADDED HERE:
+            { path: "manage-items", element: <ManageItems></ManageItems> },
+
+            // Chef Routes
             { path: "add-meal", element: <AddMeal></AddMeal> },
             { path: "chef-home", element: <MyMeals></MyMeals> },
-
-            // --- CHEF ROUTE ---
+            { path: 'order-requests', element: <OrderRequests></OrderRequests> },
             {
-                path: 'order-requests', // This matches the link in your Dashboard Sidebar
-                element: <OrderRequests></OrderRequests>
+                path: 'update-meal/:id',
+                element: <AddMeal></AddMeal>, 
+                // ✅ Fixed URL
+                loader: ({params}) => fetch(`http://localhost:5000/meals/${params.id}`)
             },
+            
+            // Shared/Misc
             {
                 path: 'payment/:id',
                 element: <Payment></Payment>,
-                // Fetch the specific order so we know how much to charge
-                loader: ({ params }) => fetch(`https://foodmate-server-v2.vercel.app/orders/${params.id}`)
+                // ✅ Fixed URL
+                loader: ({ params }) => fetch(`http://localhost:5000/orders/${params.id}`)
             },
-            // Inside Dashboard Children
-            {
-                path: 'payment-history',
-                element: <PaymentHistory></PaymentHistory>
-            },
-            {
-                path: 'payment-success',
-                element: <PaymentSuccess></PaymentSuccess>
-            },
-            // Inside the Dashboard children:
-            {
-                path: "admin-payment-history",
-                element: <AdminPaymentHistory></AdminPaymentHistory>
-            },
-            // Removed the extra 'manage-orders' block because it was redundant and missing an import.
+            { path: 'payment-history', element: <PaymentHistory></PaymentHistory> },
+            { path: 'payment-success', element: <PaymentSuccess></PaymentSuccess> },
+            { path: 'edit-profile', element: <EditProfile></EditProfile> },
+            
         ]
     }
 ]);

@@ -1,118 +1,175 @@
-import React, { useContext } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { AuthContext } from '../providers/AuthProvider';
-import { Link } from 'react-router-dom';
-import Swal from 'sweetalert2';
-import axios from 'axios';
+import { useContext } from "react";
+import { AuthContext } from "../providers/AuthProvider";
+import { useQuery } from "@tanstack/react-query";
+import useAxiosSecure from "../hooks/useAxiosSecure";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { motion } from "framer-motion";
+import { FaUtensils, FaCreditCard, FaClock, FaCheckCircle, FaTruck } from "react-icons/fa";
 
 const MyOrders = () => {
     const { user } = useContext(AuthContext);
+    const axiosSecure = useAxiosSecure();
+    const navigate = useNavigate();
 
-    const { data: orders = [], refetch } = useQuery({
-        queryKey: ['myOrders', user?.email],
-        enabled: !!user?.email, // Only run query if user email exists
+    const { data: orders = [], isLoading } = useQuery({
+        queryKey: ['my-orders', user?.email],
         queryFn: async () => {
-            const res = await axios.get(`https://foodmate-server-v2.vercel.app/orders?email=${user.email}`);
+            const res = await axiosSecure.get(`/orders?email=${user.email}`);
             return res.data;
         }
     });
 
-    const handleDelete = (id) => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Cancel this order?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            confirmButtonText: "Yes, cancel it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axios.delete(`https://foodmate-server-v2.vercel.app/orders/${id}`)
-                    .then(res => {
-                        if (res.data.deletedCount > 0) {
-                            refetch();
-                            Swal.fire("Cancelled!", "Order has been cancelled.", "success");
-                        }
-                    })
-            }
-        });
-    }
+    const handlePayClick = (order) => {
+        if (order.orderStatus !== 'delivered') {
+            Swal.fire({
+                icon: 'info',
+                title: 'Preparing your meal...',
+                text: 'Please wait for the chef to deliver the order before paying.',
+                confirmButtonColor: '#f97316'
+            });
+        } else {
+            navigate(`/dashboard/payment/${order._id}`);
+        }
+    };
+
+    if (isLoading) return (
+        <div className="flex justify-center items-center h-screen">
+            <span className="loading loading-spinner loading-lg text-orange-500"></span>
+        </div>
+    );
 
     return (
-        <div className="w-full p-10">
-            <h2 className="text-3xl font-bold mb-5">My Orders: {orders.length}</h2>
-            <div className="overflow-x-auto bg-base-200 rounded-xl p-4">
-                <table className="table">
-                    <thead className="bg-black text-white rounded-lg">
-                        <tr>
-                            <th>#</th>
-                            <th>Item Name</th>
-                            <th>Quantity</th>
-                            <th>Total Price</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Pay</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {orders.map((item, index) => (
-                            <tr key={item._id}>
-                                <th>{index + 1}</th>
-                                {/* Added fallback: if mealName is missing, try name */}
-                                <td className="font-bold">
-                                    {item.mealName || item.name || "Unknown Item"}
-                                </td>
-                                <td>{item.quantity || 1}</td>
-                                {/* Added fallback: if totalPrice is missing, try price */}
-                                <td>${item.totalPrice || item.price || 0}</td>
-                                <td>{item.orderTime ? new Date(item.orderTime).toLocaleDateString() : 'N/A'}</td>
-                                
-                                {/* Order Status Badge */}
-                                <td>
-                                    <span className={`badge ${
-                                        item.orderStatus === 'pending' ? 'badge-warning' : 
-                                        item.orderStatus === 'accepted' ? 'badge-info' :
-                                        item.orderStatus === 'delivered' ? 'badge-success' :
-                                        item.orderStatus === 'paid' ? 'badge-success' :
-                                        'badge-ghost'
-                                    } text-white capitalize`}>
-                                        {item.orderStatus || 'pending'}
-                                    </span>
-                                </td>
+        <div className="w-full min-h-screen bg-gray-50 p-6 md:p-12 font-sans">
+            
+            {/* Header Section */}
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="flex flex-col md:flex-row justify-between items-center mb-10"
+            >
+                <div>
+                    <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">
+                        My Orders
+                    </h2>
+                    <p className="text-gray-500 mt-2">Track your delicious meals and payments.</p>
+                </div>
+                <div className="bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 mt-4 md:mt-0">
+                    <span className="text-gray-600 font-bold">Total Orders: </span>
+                    <span className="text-orange-500 font-bold text-xl ml-2">{orders.length}</span>
+                </div>
+            </motion.div>
 
-                                {/* Payment Button */}
-                                <td>
-                                    {item.orderStatus === 'paid' || item.paymentStatus === 'paid' ? (
-                                        <span className="text-green-500 font-bold">Paid</span>
-                                    ) : (
-                                        <Link to={`/dashboard/payment/${item._id}`}>
-                                            <button 
-                                                className="btn btn-sm btn-primary"
-                                                disabled={item.orderStatus !== 'accepted'}
-                                                title={item.orderStatus !== 'accepted' ? "Wait for Chef to accept" : "Pay Now"}
-                                            >
-                                                Pay
-                                            </button>
-                                        </Link>
-                                    )}
-                                </td>
-
-                                {/* Cancel Button */}
-                                <td>
-                                    <button 
-                                        onClick={() => handleDelete(item._id)} 
-                                        className="btn btn-sm btn-error text-white"
-                                        disabled={item.orderStatus !== 'pending'}
-                                    >
-                                        Cancel
-                                    </button>
-                                </td>
+            {orders.length === 0 ? (
+                <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center justify-center bg-white rounded-3xl shadow-xl p-20 text-center border border-dashed border-gray-300"
+                >
+                    <div className="bg-orange-50 p-6 rounded-full mb-6">
+                        <FaUtensils className="text-6xl text-orange-300" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-700">No orders yet</h3>
+                    <p className="text-gray-500 mt-2 mb-8">Go ahead and explore our delicious menu!</p>
+                    <button onClick={() => navigate('/meals')} className="btn btn-primary bg-gradient-to-r from-orange-500 to-pink-500 border-none text-white px-8 rounded-full hover:shadow-lg transform hover:scale-105 transition-all">
+                        Browse Menu
+                    </button>
+                </motion.div>
+            ) : (
+                <div className="overflow-hidden rounded-2xl shadow-2xl bg-white border border-gray-100">
+                    <table className="table w-full">
+                        {/* Table Head */}
+                        <thead>
+                            <tr className="bg-gradient-to-r from-orange-50 to-pink-50 text-gray-700 text-sm uppercase tracking-wider">
+                                <th className="py-5 pl-8">Meal Details</th>
+                                <th className="text-center">Qty</th>
+                                <th className="text-center">Price</th>
+                                <th className="text-center">Status</th>
+                                <th className="text-center pr-8">Action</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        
+                        {/* Table Body */}
+                        <tbody className="divide-y divide-gray-100">
+                            {orders.map((order, index) => (
+                                <motion.tr 
+                                    key={order._id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="hover:bg-orange-50/30 transition-colors duration-300 group"
+                                >
+                                    <td className="pl-8 py-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="avatar">
+                                                <div className="mask mask-squircle w-16 h-16 shadow-md group-hover:scale-105 transition-transform duration-300">
+                                                    <img src={order.image} alt="Meal" className="object-cover" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-lg text-gray-800">{order.mealName}</div>
+                                                <div className="text-xs text-gray-400 mt-1">Order #{order._id.slice(-6)}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    <td className="text-center font-medium text-gray-600">
+                                        x{order.quantity}
+                                    </td>
+                                    
+                                    <td className="text-center">
+                                        <span className="font-bold text-orange-600 text-lg">${order.price}</span>
+                                    </td>
+                                    
+                                    <td className="text-center">
+                                        <div className="flex justify-center">
+                                            {order.orderStatus === 'pending' && (
+                                                <span className="badge bg-yellow-100 text-yellow-700 border-none p-3 gap-2 font-bold shadow-sm">
+                                                    <FaClock /> Pending
+                                                </span>
+                                            )}
+                                            {order.orderStatus === 'cooking' && (
+                                                <span className="badge bg-blue-100 text-blue-700 border-none p-3 gap-2 font-bold shadow-sm">
+                                                    <FaUtensils /> Cooking
+                                                </span>
+                                            )}
+                                            {order.orderStatus === 'ready' && (
+                                                <span className="badge bg-purple-100 text-purple-700 border-none p-3 gap-2 font-bold shadow-sm">
+                                                    <FaCheckCircle /> Ready
+                                                </span>
+                                            )}
+                                            {order.orderStatus === 'delivered' && (
+                                                <span className="badge bg-green-100 text-green-700 border-none p-3 gap-2 font-bold shadow-sm">
+                                                    <FaTruck /> Delivered
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    
+                                    <td className="text-center pr-8">
+                                        {order.paymentStatus === 'paid' ? (
+                                            <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-green-50 text-green-600 border border-green-200 shadow-sm">
+                                                <FaCheckCircle className="mr-2" /> Paid
+                                            </span>
+                                        ) : (
+                                            <button 
+                                                onClick={() => handlePayClick(order)}
+                                                className={`btn btn-sm px-6 rounded-full border-none shadow-md transition-all duration-300 ${
+                                                    order.orderStatus === 'delivered' 
+                                                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:shadow-lg hover:scale-105' 
+                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                <FaCreditCard className="mr-2" /> Pay Bill
+                                            </button>
+                                        )}
+                                    </td>
+                                </motion.tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 };

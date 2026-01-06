@@ -1,24 +1,25 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../providers/AuthProvider";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query"; // Using TanStack Query is better here
 import Swal from "sweetalert2";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaEdit } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import useAxiosSecure from "../hooks/useAxiosSecure"; // Use secure hook
 
 const MyMeals = () => {
     const { user } = useContext(AuthContext);
-    const [meals, setMeals] = useState([]);
+    const axiosSecure = useAxiosSecure();
 
-    const fetchMeals = () => {
-        if(user?.email){
-            axios.get(`https://foodmate-server-v2.vercel.app/meals/chef/${user.email}`)
-            .then(res => setMeals(res.data));
+    // Use useQuery instead of useEffect for better data handling
+    const { data: meals = [], refetch } = useQuery({
+        queryKey: ['my-meals', user?.email],
+        enabled: !!user?.email,
+        queryFn: async () => {
+            const res = await axiosSecure.get(`/meals/chef/${user.email}`);
+            return res.data;
         }
-    }
-
-    useEffect(() => {
-        fetchMeals();
-    }, [user]);
+    });
 
     const handleDelete = (id) => {
         Swal.fire({
@@ -31,10 +32,10 @@ const MyMeals = () => {
             confirmButtonText: "Yes, delete it!"
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.delete(`https://foodmate-server-v2.vercel.app/meals/${id}`)
+                axiosSecure.delete(`/meals/${id}`)
                     .then(res => {
                         if (res.data.deletedCount > 0) {
-                            fetchMeals();
+                            refetch(); // Automatically refresh the list
                             Swal.fire("Deleted!", "Your meal has been deleted.", "success");
                         }
                     })
@@ -43,50 +44,50 @@ const MyMeals = () => {
     }
 
     return (
-        <div className="pt-6 px-4 max-w-screen-xl mx-auto min-h-screen">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">My Menu Items: {meals.length}</h2>
-
-            <div className="overflow-x-auto">
-                <table className="table w-full border-separate border-spacing-y-2">
-                    <thead>
-                        <tr className="bg-gradient-to-r from-chef-primary to-orange-400 text-white">
-                            <th className="rounded-tl-lg">#</th>
+        <div className="w-full p-10">
+            <h2 className="text-3xl font-bold mb-5 text-center">My Added Meals: {meals.length}</h2>
+            <div className="overflow-x-auto bg-white rounded-2xl shadow-xl">
+                <table className="table w-full">
+                    <thead className="bg-gradient-to-r from-orange-400 to-pink-500 text-white">
+                        <tr>
+                            <th>#</th>
                             <th>Image</th>
                             <th>Name</th>
                             <th>Price</th>
                             <th>Likes</th>
-                            <th className="rounded-tr-lg">Action</th>
+                            <th className="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <AnimatePresence>
                         {meals.map((item, index) => (
-                            <motion.tr
+                            <motion.tr 
                                 key={item._id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
-                                className="bg-white shadow-md rounded-xl hover:scale-[1.02] hover:shadow-lg transition-all duration-300 cursor-pointer"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="hover:bg-orange-50 transition-colors"
                             >
                                 <th>{index + 1}</th>
                                 <td>
                                     <div className="flex items-center gap-3">
                                         <div className="avatar">
                                             <div className="mask mask-squircle w-12 h-12">
-                                                <img src={item.image} alt={item.title} className="transition-transform duration-300 hover:scale-110"/>
+                                                <img src={item.image} alt={item.title} />
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="font-semibold text-gray-800">{item.title}</td>
                                 <td className="text-chef-primary font-bold">${item.price}</td>
-                                <td className="text-yellow-500 font-semibold">{item.likes}</td>
-                                <td>
-                                    <button
-                                        onClick={() => handleDelete(item._id)}
-                                        className="btn btn-ghost btn-lg text-red-600 hover:bg-red-100 hover:text-red-800 transition-all duration-300 rounded-full p-3"
-                                    >
+                                <td className="text-yellow-500 font-semibold">{item.likes || 0}</td>
+                                <td className="flex justify-center gap-3">
+                                    <Link to={`/dashboard/update-meal/${item._id}`}>
+                                        <button className="btn btn-ghost btn-lg text-orange-500">
+                                            <FaEdit />
+                                        </button>
+                                    </Link>
+                                    <button onClick={() => handleDelete(item._id)} className="btn btn-ghost btn-lg text-red-600">
                                         <FaTrash />
                                     </button>
                                 </td>

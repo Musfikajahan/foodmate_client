@@ -6,7 +6,11 @@ const AdminPaymentHistory = () => {
     const { data: payments = [], isLoading } = useQuery({
         queryKey: ['allPayments'],
         queryFn: async () => {
-            const res = await axios.get('https://foodmate-server-v2.vercel.app/payments');
+            const token = localStorage.getItem('access-token'); // Get Token
+            // Fixed URL and added headers
+            const res = await axios.get('http://localhost:5000/payments', {
+                headers: { authorization: `Bearer ${token}` }
+            });
             return res.data;
         }
     });
@@ -23,7 +27,7 @@ const AdminPaymentHistory = () => {
                     <thead className="bg-chef-primary text-white">
                         <tr>
                             <th>#</th>
-                            <th>User Email</th> {/* Admin needs to see WHO paid */}
+                            <th>User Email</th> 
                             <th>Transaction ID</th>
                             <th>Amount</th>
                             <th>Date</th>
@@ -40,7 +44,7 @@ const AdminPaymentHistory = () => {
                                 <td>{new Date(payment.date).toLocaleDateString()}</td>
                                 <td>
                                     <span className="badge badge-success text-white">
-                                        {payment.status}
+                                        {payment.status || 'paid'}
                                     </span>
                                 </td>
                             </tr>

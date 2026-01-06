@@ -63,7 +63,8 @@ const Navbar = () => {
     );
 
     return (
-        <div className="navbar fixed z-20 w-full bg-gradient-to-r from-yellow-100 via-orange-100 to-orange-200 backdrop-blur-md shadow-lg px-6 transition-all duration-500">
+        // ✅ FIX: Changed z-20 to z-50 so Navbar stays on top of the Banner
+        <div className="navbar fixed z-50 w-full bg-gradient-to-r from-yellow-100 via-orange-100 to-orange-200 backdrop-blur-md shadow-lg px-6 transition-all duration-500">
             <div className="navbar-start">
                 <div className="dropdown">
                     <div tabIndex={0} className="btn btn-ghost lg:hidden">
@@ -97,19 +98,36 @@ const Navbar = () => {
             <div className="navbar-end flex items-center gap-3">
                 {user ? (
                     <>
-                        <div className="avatar">
-                            <div className="w-12 h-12 rounded-full ring ring-orange-400 ring-offset-base-100 ring-offset-2 overflow-hidden hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-orange-50">
-                                {user?.photoURL ? (
-                                    <img
-                                        src={user.photoURL.trim()}
-                                        alt="User"
-                                        className="w-full h-full object-cover block"
-                                    />
-                                ) : (
-                                    <span className="text-orange-500 text-xl font-bold">
+                        {/* Tooltip for User Name */}
+                        <div 
+                            className="tooltip tooltip-bottom z-50 tooltip-warning font-bold text-orange-600" 
+                            data-tip={user.displayName || "User"}
+                        >
+                            <div className="avatar">
+                                <div className="w-12 h-12 rounded-full ring ring-orange-400 ring-offset-base-100 ring-offset-2 overflow-hidden hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-orange-50 relative">
+                                    
+                                    {/* 1. If photoURL exists, try to show the Image */}
+                                    {user.photoURL && (
+                                        <img
+                                            src={user.photoURL}
+                                            alt="User"
+                                            className="w-full h-full object-cover block absolute inset-0"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none'; 
+                                                e.target.nextSibling.style.display = 'flex'; 
+                                            }}
+                                        />
+                                    )}
+
+                                    {/* 2. Fallback Initials */}
+                                    <span 
+                                        className="w-full h-full flex items-center justify-center text-orange-500 text-xl font-bold bg-orange-50"
+                                        style={{ display: user.photoURL ? 'none' : 'flex' }}
+                                    >
                                         {user?.displayName ? user.displayName[0].toUpperCase() : "U"}
                                     </span>
-                                )}
+
+                                </div>
                             </div>
                         </div>
 

@@ -8,8 +8,13 @@ const PaymentHistory = () => {
 
     const { data: payments = [] } = useQuery({
         queryKey: ['payments', user?.email],
+        enabled: !!user?.email,
         queryFn: async () => {
-            const res = await axios.get(`https://foodmate-server-v2.vercel.app/payments/${user.email}`);
+            const token = localStorage.getItem('access-token'); // Get Token
+            // Fixed URL and added headers
+            const res = await axios.get(`http://localhost:5000/payments/${user.email}`, {
+                headers: { authorization: `Bearer ${token}` }
+            });
             return res.data;
         }
     });

@@ -29,16 +29,23 @@ const AuthProvider = ({ children }) => {
         return signOut(auth);
     }
 
+    // ✅ FIX: Manually update the local user state so the name shows up immediately
     const updateUserProfile = (name, photo) => {
         return updateProfile(auth.currentUser, {
             displayName: name, photoURL: photo
+        }).then(() => {
+            // This forces the UI to see the new name right away
+            setUser(prev => ({ ...prev, displayName: name, photoURL: photo }));
         });
     }
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, currentUser => {
             setUser(currentUser);
-            console.log('Current user:', currentUser);
+            if(currentUser) {
+                // Optional: refresh token
+                currentUser.getIdToken(true); 
+            }
             setLoading(false);
         });
         return () => {

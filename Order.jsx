@@ -1,151 +1,87 @@
 import { useContext } from "react";
-import { useLocation, useNavigate, useLoaderData } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import useAxiosSecure from "../hooks/useAxiosSecure"; // Use Secure for posting
 import { AuthContext } from "../providers/AuthProvider";
 import Swal from "sweetalert2";
-import axios from "axios";
 
 const Order = () => {
     const { user } = useContext(AuthContext);
-    const navigate = useNavigate();
-
-    const loaderMeal = useLoaderData();
     const location = useLocation();
-    const meal = loaderMeal || location.state?.meal;
+    const navigate = useNavigate();
+    const { register, handleSubmit } = useForm();
+    const axiosSecure = useAxiosSecure();
+    
+    const { meal } = location.state || {};
 
-    if (!meal) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh]">
-                <h2 className="text-2xl font-bold mb-4">Error: Meal Data Missing!</h2>
-                <button onClick={() => navigate('/meals')} className="btn btn-primary">Go to Meals</button>
-            </div>
-        );
-    }
+    const onSubmit = (data) => {
+        if (!meal) return;
 
-    const { register, handleSubmit, watch, formState: { errors } } = useForm();
-    const quantity = watch("quantity", 1);
-    const totalPrice = (meal.price * quantity).toFixed(2);
-
-    const onSubmit = data => {
-        const orderData = {
+        const orderInfo = {
             mealId: meal._id,
             mealName: meal.title,
-            mealImage: meal.image,
-            price: parseFloat(meal.price),
+            image: meal.image,
+            price: parseFloat(meal.price) * parseInt(data.quantity),
             quantity: parseInt(data.quantity),
-            totalPrice: parseFloat(totalPrice),
-
-            // CUSTOMER INFO
             userEmail: user.email,
             userName: user.displayName,
             userAddress: data.address,
-
-            // ✅ FIXED (this is required for Manage Orders)
-            chefEmail: meal.chefEmail,
-            chefName: meal.chefName,
-
-            paymentStatus: "Pending",
-            orderStatus: "pending",
+            userPhone: data.phone,
+            chefId: meal.chefEmail, 
+            orderStatus: 'pending',
+            paymentStatus: 'unpaid',
             orderDate: new Date()
         };
 
-        console.log("🚀 Sending Order:", orderData);
-
-        Swal.fire({
-            title: 'Confirm Order?',
-            text: `Total Price: $${totalPrice}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#FF6B00',
-            confirmButtonText: 'Yes, Place Order!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axios.post('https://foodmate-server-v2.vercel.app/orders', orderData)
-                    .then(res => {
-                        console.log("✅ Server Response:", res.data);
-
-                        if (res.data.insertedId || res.data.modifiedCount > 0) {
-                            Swal.fire('Success!', 'Your order has been placed.', 'success');
-                            navigate('/dashboard/my-orders');
-                        }
-                    })
-                    .catch(error => {
-                        console.error("❌ Order Error:", error);
-                        Swal.fire('Error', 'Could not place order.', 'error');
+        axiosSecure.post('/orders', orderInfo)
+            .then(res => {
+                if (res.data.insertedId) {
+                    Swal.fire({
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Order Placed!',
+                        text: 'Wait for the chef to confirm.',
+                        showConfirmButton: false,
+                        timer: 2000
                     });
-            }
-        });
+                    // ✅ FIX: Go to "My Orders" instead of Payment
+                    navigate('/dashboard/my-orders');
+                }
+            });
     };
 
+    if (!meal) return <div className="text-center mt-20">No meal selected. Please go back.</div>;
+
     return (
-        <div className="max-w-screen-md mx-auto my-10 p-6 bg-base-200 rounded-xl shadow-lg">
-            <h2 className="text-3xl font-bold text-center mb-8 text-chef-primary">Confirm Your Order</h2>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="form-control">
-                        <label className="label"><span className="label-text">Meal Name</span></label>
-                        <input type="text" value={meal.title} readOnly className="input input-bordered bg-gray-200 text-black" />
-                    </div>
-                    <div className="form-control">
-                        <label className="label"><span className="label-text">Price (Per Unit)</span></label>
-                        <input type="text" value={`$${meal.price}`} readOnly className="input input-bordered bg-gray-200 text-black" />
-                    </div>
-                    <div className="form-control">
-                        <label className="label"><span className="label-text">Your Email</span></label>
-                        <input type="text" value={user?.email} readOnly className="input input-bordered bg-gray-200 text-black" />
-                    </div>
-                    <div className="form-control">
-                        <label className="label"><span className="label-text">Chef Name</span></label>
-                        <input type="text" value={meal.chefName} readOnly className="input input-bordered bg-gray-200 text-black" />
-                    </div>
+        <div className="hero min-h-screen bg-base-200 py-10">
+            <div className="hero-content flex-col lg:flex-row-reverse w-full max-w-4xl">
+                <div className="text-center lg:text-left lg:w-1/2">
+                    <img src={meal.image} alt="Meal" className="rounded-xl shadow-2xl w-full h-64 object-cover mb-4" />
+                    <h1 className="text-4xl font-bold">{meal.title}</h1>
+                    <p className="py-6 text-2xl font-bold text-orange-500">${meal.price}</p>
                 </div>
-
-                <div className="form-control">
-                    <label className="label"><span className="label-text font-bold">Quantity</span></label>
-                    <input
-                        type="number"
-                        defaultValue={1}
-                        min="1"
-                        {...register("quantity", { required: true, min: 1 })}
-                        className="input input-bordered border-chef-primary text-black bg-white"
-                    />
+                
+                <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100 lg:w-1/2">
+                    <form onSubmit={handleSubmit(onSubmit)} className="card-body">
+                        <h2 className="text-2xl font-bold text-center mb-4">Confirm Order</h2>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Quantity</span></label>
+                            <input type="number" defaultValue={1} min="1" {...register("quantity", {required: true})} className="input input-bordered" />
+                        </div>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Delivery Address</span></label>
+                            <textarea {...register("address", {required: true})} className="textarea textarea-bordered" placeholder="Your full address"></textarea>
+                        </div>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Phone Number</span></label>
+                            <input type="tel" {...register("phone", {required: true})} className="input input-bordered" placeholder="+1234..." />
+                        </div>
+                        <div className="form-control mt-6">
+                            <button className="btn btn-primary bg-orange-500 border-none">Place Order</button>
+                        </div>
+                    </form>
                 </div>
-
-                <div className="form-control">
-                    <label className="label"><span className="label-text font-bold">Delivery Address</span></label>
-                    <textarea
-                        {...register("address", { required: true })}
-                        placeholder="Enter your full address..."
-                        className="textarea textarea-bordered h-24 text-black bg-white"
-                    ></textarea>
-                    {errors.address && <span className="text-red-500 text-sm">Address is required</span>}
-                </div>
-
-                <div className="divider"></div>
-
-                <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-4">
-                    <span className="text-xl font-bold text-black">Total:</span>
-                    <span className="text-2xl font-bold text-chef-primary">${totalPrice}</span>
-                </div>
-
-                <div className="flex gap-4">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="btn btn-outline border-red-500 text-red-500 hover:bg-red-600 hover:text-white flex-1"
-                    >
-                        Quit / Cancel
-                    </button>
-
-                    <input
-                        type="submit"
-                        value="Confirm Order"
-                        className="btn btn-primary bg-chef-primary border-none text-white flex-1"
-                    />
-                </div>
-            </form>
+            </div>
         </div>
     );
 };

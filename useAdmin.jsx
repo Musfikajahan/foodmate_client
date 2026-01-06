@@ -7,14 +7,22 @@ const useAdmin = () => {
     const { user, loading } = useContext(AuthContext);
 
     const {
-        data: isAdminData,
+        data: isAdminData = false,
         isLoading: isAdminLoading
     } = useQuery({
         queryKey: ["isAdmin", user?.email],
         enabled: !loading && !!user?.email,
         queryFn: async () => {
-            const res = await axios.get(`https://foodmate-server-v2.vercel.app/users/admin/${user.email}`);
-            return res.data.isAdmin; // Correct field name
+            const token = localStorage.getItem('access-token'); // 1. Get Token
+            const res = await axios.get(
+                `http://localhost:5000/users/admin/${user.email}`,
+                {
+                    headers: {
+                        authorization: `Bearer ${token}` // 2. Send Token
+                    }
+                }
+            );
+            return res.data.isAdmin;
         }
     });
 

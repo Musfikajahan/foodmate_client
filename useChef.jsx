@@ -13,10 +13,15 @@ const useChef = () => {
         queryKey: ["isChef", user?.email],
         enabled: !loading && !!user?.email,
         queryFn: async () => {
+            const token = localStorage.getItem('access-token'); // 1. Get Token
             const res = await axios.get(
-                `https://foodmate-server-v2.vercel.app/users/chef/${user.email}`
+                `http://localhost:5000/users/chef/${user.email}`, 
+                {
+                    headers: {
+                        authorization: `Bearer ${token}` // 2. Send Token
+                    }
+                }
             );
-            // FIXED: Backend returns { isChef: true/false }, not { chef: ... }
             return res.data.isChef;
         }
     });

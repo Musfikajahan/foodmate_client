@@ -10,34 +10,43 @@ const OrderRequests = () => {
 
     const { data: orders = [], refetch } = useQuery({
         queryKey: ['order-requests', user?.email],
+        enabled: !!user?.email,
         queryFn: async () => {
-            const res = await axios.get(`https://foodmate-server-v2.vercel.app/orders/chef/${user?.email}`);
+            const token = localStorage.getItem('access-token'); // Get Token
+            // Fixed URL (no enter key) and added Headers
+            const res = await axios.get(`http://localhost:5000/orders/chef/${user?.email}`, {
+                headers: { authorization: `Bearer ${token}` }
+            });
             return res.data;
-        },
-        enabled: !!user?.email
+        }
     });
 
     const handleStatusChange = (orderId, newStatus) => {
-        axios.patch(`https://foodmate-server-v2.vercel.app/orders/status/${orderId}`, { status: newStatus })
-            .then(res => {
-                if (res.data.modifiedCount > 0) {
-                    refetch();
-                    Swal.fire({
-                        icon: 'success',
-                        title: `Order ${newStatus}`,
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                }
-            })
-            .catch(error => {
-                console.error("Error updating status:", error);
+        const token = localStorage.getItem('access-token'); // Get Token
+        
+        axios.patch(`http://localhost:5000/orders/status/${orderId}`, 
+            { status: newStatus },
+            { headers: { authorization: `Bearer ${token}` } } // Add Headers
+        )
+        .then(res => {
+            if (res.data.modifiedCount > 0) {
+                refetch();
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Something went wrong!',
+                    icon: 'success',
+                    title: `Order ${newStatus}`,
+                    showConfirmButton: false,
+                    timer: 1500
                 });
+            }
+        })
+        .catch(error => {
+            console.error("Error updating status:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong!',
             });
+        });
     };
 
     return (
@@ -72,9 +81,9 @@ const OrderRequests = () => {
                                     transition={{ duration: 0.3 }}
                                     className="bg-white shadow-md rounded-xl hover:scale-[1.02] hover:shadow-xl transition-all duration-300"
                                 >
-                                    <td className="font-semibold text-gray-800">{order.mealName}</td>
-                                    <td>{order.quantity}</td>
-                                    <td className="text-chef-primary font-bold">${order.totalPrice}</td>
+                                    <td className="font-semibold text-gray-800">{order.title || order.mealName}</td>
+                                    <td>{order.quantity || 1}</td>
+                                    <td className="text-chef-primary font-bold">${order.price}</td>
                                     <td>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${
                                             order.orderStatus === 'pending' ? 'bg-yellow-400 text-black' :

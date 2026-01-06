@@ -57,7 +57,8 @@ const Order = () => {
             confirmButtonText: 'Yes, Order!'
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post('https://foodmate-server-v2.vercel.app/orders', orderData)
+                axios.post('http://localhost:5000
+/orders', orderData)
                     .then(res => {
                         if (res.data.insertedId || res.data.modifiedCount > 0) {
                             Swal.fire(
